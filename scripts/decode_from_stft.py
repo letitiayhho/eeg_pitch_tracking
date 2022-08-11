@@ -11,7 +11,7 @@ from mne.decoding import SlidingEstimator, cross_val_multiscore
 
 from util.io.bids import DataSink
 
-def decoder_2(sub, task, run, Zxxs, events):
+def decoder_from_stft(sub, task, run, Zxxs, events):
     BIDS_ROOT = '../data/bids'
     DERIV_ROOT = '../data/bids/derivatives'
     FIGS_ROOT = '../figs'

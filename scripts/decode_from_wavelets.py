@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
-#SBATCH --time=00:15:00 # only need 15 minutes for regular logreg, need like 4 hrs for logregcv
+#SBATCH --time=00:20:00 # only need 15 minutes for regular logreg? need like 4 hrs for logregcv
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --mem-per-cpu=8000
+#SBATCH --mem-per-cpu=32G
 #SBATCH --mail-type=all
 #SBATCH --mail-user=letitiayhho@uchicago.edu
 #SBATCH --output=logs/decoding_%j.log
 
+import gc
 import sys
 import mne
 import numpy as np
@@ -26,11 +27,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from mne.decoding import SlidingEstimator, cross_val_multiscore
 
-from util.io.bids import DataSink
-
-def main(fpath, sub, task, run):
+def main(fpath, sub, task, run, scores_fpath):
     BIDS_ROOT = '../data/bids'
-    DERIV_ROOT = '../data/bids/derivatives'
     FIGS_ROOT = '../figs'
     STIM_FREQS = np.array([50, 100, 150, 200, 250])
     FS = 2000
@@ -56,6 +54,9 @@ def main(fpath, sub, task, run):
                        n_jobs = 1,
                        average = False)
     power = np.log10(power)
+    
+    del epochs
+    gc.collect()
 
     # Get some information
     n_epochs = np.shape(power)[0]
@@ -101,15 +102,6 @@ def main(fpath, sub, task, run):
 
     # Save decoder score_shape
     print("---------- Save decoder scores ----------")
-    sink = DataSink(DERIV_ROOT, 'decoding')
-    scores_fpath = sink.get_path(
-        subject = sub,
-        task = task,
-        run = run,
-        desc = 'log_reg_no_crop',
-        suffix = 'scores',
-        extension = 'npy',
-    )
     print('Saving scores to: ' + scores_fpath)
     np.save(scores_fpath, scores)
 
@@ -129,11 +121,12 @@ def main(fpath, sub, task, run):
     plt.savefig(fig_fpath)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         print(__doc__)
         sys.exit(1)
     fpath = sys.argv[1]
     sub = sys.argv[2]
     task = sys.argv[3]
     run = sys.argv[4]
-    main(fpath, sub, task, run)
+    scores_fpath = sys.argv[5]
+    main(fpath, sub, task, run, scores_fpath)
