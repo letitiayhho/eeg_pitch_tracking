@@ -1,41 +1,23 @@
+#!/usr/bin/env python3
+
+#SBATCH --time=00:04:00
+#SBATCH --partition=broadwl
+#SBATCH --ntasks=1
+#SBATCH --mem-per-cpu=16G
+#SBATCH --mail-type=all
+#SBATCH --mail-user=letitiayhho@uchicago.edu
+#SBATCH --output=logs/stft_%j.log
+
+import sys
 import numpy as np
 import mne
 import pandas as pd
 from scipy import signal
 from scipy import signal
 from util.io.bids import DataSink
+from util.io.stft import *
 
-def summarize_stft(f, Zxx, n_epochs, condition_freqs): # approximate power at the condition freqs
-    Zxx_condensed = np.empty([n_epochs, len(condition_freqs), 19])
-    
-    for i in range(len(condition_freqs)):
-        
-        # find indexes of freqs surrounding the condition freq
-        freq = condition_freqs[i]
-        a = int(np.argwhere(f < freq)[-1])
-        b = a+1
-        
-        # subset power for the condition freq
-        condition_Zxx = Zxx[:,a:b+1, :]
-        
-        # take average to get approximate for power at condition freq
-        condition_Zxx = np.mean(condition_Zxx, axis = 1)
-        Zxx_condensed[:, i, :] = condition_Zxx
-    
-    return Zxx_condensed
-
-def get_stft_for_one_channel(x, fs, n_epochs, condition_freqs): # where x is n_epochs, n_windows
-    f, t, Zxx = signal.stft(x, fs) 
-
-    # Take real values
-    Zxx = np.abs(Zxx)
-    
-    # Summarize to frequencies of interest
-    Zxx = summarize_stft(f, Zxx, n_epochs, condition_freqs)
-    
-    return (f, t, Zxx)
-
-def compute_stft(fpath, sub, task, run):
+def main(fpath, sub, task, run):
     DERIV_ROOT = '../data/bids/derivatives'
     FS = 5000
     CONDITION_FREQS = [50, 100, 150, 200, 250]
@@ -72,3 +54,13 @@ def compute_stft(fpath, sub, task, run):
     np.save(stft_fpath, Zxxs)
         
     return (Zxxs, events)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 5:
+        print(__doc__)
+        sys.exit(1)
+    FPATH = sys.argv[1]
+    SUB = sys.argv[2]
+    TASK = sys.argv[3]
+    RUN = sys.argv[4]
+    main(FPATH, SUB, TASK, RUN)

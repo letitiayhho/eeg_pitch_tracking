@@ -44,10 +44,10 @@ def main(subs, skips):
         (Zxxs, events) = compute_stft.main(fpath, sub, task, run)
         
         # Decode
-        subprocess.check_call("sbatch ./decoder_from_stft.py %s %s %s %s %s" % (sub, task, run, Zxxs, events), shell=True)
+        subprocess.check_call("sbatch ./decode_from_stft.py %s %s %s %s %s" % (sub, task, run, Zxxs, events), shell=True)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run decoder_from_stft.py over given subjects')
+    parser = argparse.ArgumentParser(description='Run decode_from_stft.py over given subjects')
     parser.add_argument('--subs', 
                         type = str, 
                         nargs = '*', 

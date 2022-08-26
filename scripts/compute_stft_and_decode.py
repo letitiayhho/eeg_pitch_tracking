@@ -20,7 +20,7 @@ import sys
 # from bids import BIDSLayout
 # from util.io.iter_BIDSPaths import *
 # from util.io.bids import DataSink
-from util.io.compute_stft import *
+from util.io.stft import *
 from decoder_2 import * 
 
 def main(fpath, sub, task, run):
