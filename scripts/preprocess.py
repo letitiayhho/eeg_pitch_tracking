@@ -34,11 +34,13 @@ def main(sub, task, run) -> None:
 
     # Resampling and PREP
     print("---------- Resampling and PREP ----------")
-    #raw, events = resample(raw, FS, events)
-    # if sub == '2':
-        # raw = resample(FS)
+    print(f"BADS from info: {raw.info['bads']}")
     raw, bads = run_PREP(raw, sub, run, LOWPASS)
-
+    print(f"BADS: {bads}")
+    print(f"BADS from info: {raw.info['bads']}")
+    print(f"Stop labeling channels as bad in info")
+    raw.info['bads'] = []
+    
     # Run ICA on one copy of the data
     print("---------- Run ICA on one copy of the data ----------")
     raw_for_ica = bandpass(raw, None, 1)
@@ -63,6 +65,8 @@ def main(sub, task, run) -> None:
     fpath, sink = get_save_path(DERIV_ROOT, sub, task, run)
     save_and_generate_report(fpath, epochs, sink, sub, task, run, ica, bads, thres)
     print("Saving results and report to: " + str(fpath))
+    
+    print(f"Number of channels: {len(epochs.ch_names)}")
 
 __doc__ = "Usage: ./preprocess.py <sub> <task> <run>"
 
