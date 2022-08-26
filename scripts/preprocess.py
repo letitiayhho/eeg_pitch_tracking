@@ -34,11 +34,9 @@ def main(sub, task, run) -> None:
 
     # Resampling and PREP
     print("---------- Resampling and PREP ----------")
-    print(f"BADS from info: {raw.info['bads']}")
     raw, bads = run_PREP(raw, sub, run, LOWPASS)
     print(f"BADS: {bads}")
     print(f"BADS from info: {raw.info['bads']}")
-    print(f"Stop labeling channels as bad in info")
     raw.info['bads'] = []
     
     # Run ICA on one copy of the data
