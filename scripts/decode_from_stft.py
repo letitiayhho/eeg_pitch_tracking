@@ -15,6 +15,9 @@ def decoder_from_stft(sub, task, run, Zxxs, events):
     BIDS_ROOT = '../data/bids'
     DERIV_ROOT = '../data/bids/derivatives'
     FIGS_ROOT = '../figs'
+            
+    # Reshape for decoder
+    Zxxs = Zxxs.reshape((n_epochs, n_freqs*n_chans, 19)) # n_epochs, n_freqs*n_chans, n_windows
 
     # Create target array
     labels = pd.Series(events[:, 2])
