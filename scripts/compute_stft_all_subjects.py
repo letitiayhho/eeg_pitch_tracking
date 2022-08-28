@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
+import os
 import subprocess
 import argparse
 from bids import BIDSLayout
+from util.io.bids import DataSink
 from util.io.iter_BIDSPaths import *
 
 def main(subs, skips) -> None:
@@ -15,15 +17,32 @@ def main(subs, skips) -> None:
                     return_type = 'filename')
     
     for (fpath, sub, task, run) in iter_BIDSPaths(fpaths):
+        # Don't run if file already exists
+        DERIV_ROOT = '../data/bids/derivatives'
+        sink = DataSink(DERIV_ROOT, 'decoding')
+        save_fpath = sink.get_path(
+            subject = sub,
+            task = task,
+            run = run,
+            desc = 'stft',
+            suffix = 'power',
+            extension = 'npy',
+        )
+#         if os.path.isfile(save_fpath):
+#             print(f"Stft already computed for {sub} run {run}")
+#             continue
+        
         # if subs were given but sub is not in subs, don't preprocess
         if bool(subs) and sub not in subs:
             continue
+
         # if sub in skips, don't preprocess
         if sub in skips:
             continue
-        
+
         # Get stft
-        subprocess.check_call("sbatch ./compute_stft.py %s %s %s %s" % (fpath, sub, task, run), shell=True)
+        print('subprocess.check_call("sbatch ./compute_stft.py %s %s %s %s %s" % (fpath, sub, task, run, save_fpath), shell=True)')
+        subprocess.check_call("sbatch ./compute_stft.py %s %s %s %s %s" % (fpath, sub, task, run, save_fpath), shell=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run compute_stft.py over given subjects')

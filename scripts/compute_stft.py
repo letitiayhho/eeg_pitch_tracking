@@ -14,11 +14,9 @@ import mne
 import pandas as pd
 from scipy import signal
 from scipy import signal
-from util.io.bids import DataSink
 from util.io.stft import *
 
-def main(fpath, sub, task, run):
-    DERIV_ROOT = '../data/bids/derivatives'
+def main(fpath, sub, task, run, save_fpath):
     FS = 5000
     CONDITION_FREQS = [50, 100, 150, 200, 250]
     
@@ -41,26 +39,20 @@ def main(fpath, sub, task, run):
         Zxxs[:, chan, :, :] = Zxx
 
     # Save powers and events
-    sink = DataSink(DERIV_ROOT, 'decoding')
-    stft_fpath = sink.get_path(
-        subject = sub,
-        task = task,
-        run = run,
-        desc = 'stft',
-        suffix = 'power',
-        extension = 'npy',
-    )
-    print('Saving scores to: ' + stft_fpath)
-    np.save(stft_fpath, Zxxs)
+    print('Saving scores to: ' + save_fpath)
+    np.save(save_fpath, Zxxs)
         
     return (Zxxs, events)
 
+__doc__ = "Usage: ./compute_stft.py <fpath> <sub> <task> <run> <save_fpath>"
+
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         print(__doc__)
         sys.exit(1)
     FPATH = sys.argv[1]
     SUB = sys.argv[2]
     TASK = sys.argv[3]
     RUN = sys.argv[4]
-    main(FPATH, SUB, TASK, RUN)
+    SAVE_FPATH = sys.argv[5]
+    main(FPATH, SUB, TASK, RUN, SAVE_FPATH)
