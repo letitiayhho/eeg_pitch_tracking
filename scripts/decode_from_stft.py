@@ -1,3 +1,14 @@
+#!/usr/bin/env python3
+
+#SBATCH --time=00:10:00
+#SBATCH --partition=broadwl
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem-per-cpu=24G
+#SBATCH --mail-type=all
+#SBATCH --mail-user=letitiayhho@uchicago.edu
+#SBATCH --output=logs/decode_from_stft_%j.log
+
 import mne
 import sys
 import numpy as np

@@ -6,7 +6,7 @@
 #SBATCH --mem-per-cpu=16G
 #SBATCH --mail-type=all
 #SBATCH --mail-user=letitiayhho@uchicago.edu
-#SBATCH --output=logs/stft_%j.log
+#SBATCH --output=logs/compute_stft_%j.log
 
 import sys
 import numpy as np
