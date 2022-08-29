@@ -22,8 +22,6 @@ def main(fpath, sub, task, run, save_fpath):
     
     # Read data
     epochs = mne.read_epochs(fpath)
-    print("events read")
-    events = epochs.events
     epochs = epochs.get_data()
     
     # Get metadata
@@ -39,10 +37,10 @@ def main(fpath, sub, task, run, save_fpath):
         Zxxs[:, chan, :, :] = Zxx
 
     # Save powers and events
-    print('Saving scores to: ' + save_fpath)
-    np.save(save_fpath, Zxxs)
+#     print('Saving scores to: ' + save_fpath)
+#     np.save(save_fpath, Zxxs)
         
-    return (Zxxs, events)
+    return (Zxxs)
 
 __doc__ = "Usage: ./compute_stft.py <fpath> <sub> <task> <run> <save_fpath>"
 

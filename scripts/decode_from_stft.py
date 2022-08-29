@@ -22,13 +22,40 @@ from mne.decoding import SlidingEstimator, cross_val_multiscore
 
 from util.io.bids import DataSink
 
-def decoder_from_stft(sub, task, run, Zxxs, events):
+def main(sub, task, run):
     BIDS_ROOT = '../data/bids'
     DERIV_ROOT = '../data/bids/derivatives'
     FIGS_ROOT = '../figs'
-            
+
+    # Load events
+    #events_fpath = f'../data/bids/derivatives/preprocessing/sub-{sub}/sub-{sub}_run-{run}_events.npy'
+    epochs_fpath = f'/project2/hcn1/pitch_tracking/scripts/../data/bids/derivatives/preprocessing/sub-{sub}/sub-{sub}_task-pitch_run-{run}_res-hi_desc-clean_epo.fif.gz'
+    print(f'Loading events from {epochs_fpath}')
+    epochs = mne.read_epochs(epochs_fpath)
+    events = epochs.events
+
+    # Load stft results        
+    DERIV_ROOT = '../data/bids/derivatives'
+    sink = DataSink(DERIV_ROOT, 'decoding')
+    stft_fpath = sink.get_path(
+        subject = sub,
+        task = task,
+        run = run,
+        desc = 'stft',
+        suffix = 'power',
+        extension = 'npy',
+    )
+    print(f'Loading stft from {stft_fpath}')
+    Zxxs = np.load(stft_fpath)
+
     # Reshape for decoder
-    Zxxs = Zxxs.reshape((n_epochs, n_freqs*n_chans, 19)) # n_epochs, n_freqs*n_chans, n_windows
+    n_epochs = np.shape(Zxxs)[0]
+    if n_epochs != np.shape(events)[0]:
+        sys.exit('Incorrect number of epochs')
+    n_freqs = 5
+    n_chans = 62
+    n_windows = 19
+    Zxxs = Zxxs.reshape((n_epochs, n_freqs*n_chans, n_windows)) # n_epochs, n_freqs*n_chans, n_windows
 
     # Create target array
     labels = pd.Series(events[:, 2])
@@ -87,3 +114,17 @@ def decoder_from_stft(sub, task, run, Zxxs, events):
     fig_fpath = FIGS_ROOT + '/subj-' + sub + '_' + 'task-pitch_' + 'run-' + run + '_stft' + '.png'
     print('Saving figure to: ' + fig_fpath)
     plt.savefig(fig_fpath)
+
+__doc__ = "Usage: ./decode_from_stft.py <sub> <task> <run>"
+
+if __name__ == "__main__":
+    print(len(sys.argv))
+    print("Argument List:", str(sys.argv))
+    if len(sys.argv) != 4:
+        print(__doc__)
+        sys.exit("Incorrect call to script")
+    print("Reading args")
+    SUB = sys.argv[1]
+    TASK = sys.argv[2]
+    RUN = sys.argv[3]
+    main(SUB, TASK, RUN)

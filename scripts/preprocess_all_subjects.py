@@ -26,7 +26,7 @@ def main(subs, skips) -> None:
 
         # skip if subject is already preprocessed
         save_fpath, sink = get_save_path(DERIV_ROOT, sub, task, run)
-        if os.path.isfile(save_fpath):
+        if os.path.isfile(save_fpath) and sub not in subs:
             print(f"Subject {sub} run {run} is already preprocessed")
             continue
 

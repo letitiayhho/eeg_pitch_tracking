@@ -1,10 +1,15 @@
+#!/usr/bin/env python3
+
+import os
 import subprocess
 import argparse
 import compute_stft
 from bids import BIDSLayout
+import numpy as np
+from util.io.iter_BIDSPaths import *
+from util.io.bids import DataSink
 
 # import mne
-# import numpy as np
 # import matplotlib.pyplot as plt
 # import pandas as pd
 
@@ -23,8 +28,6 @@ from bids import BIDSLayout
 
 def main(subs, skips):
     BIDS_ROOT = '../data/bids'
-    DERIV_ROOT = '../data/bids/derivatives'
-    FIGS_ROOT = '../figs'
     layout = BIDSLayout(BIDS_ROOT, derivatives = True)
     fpaths = layout.get(scope = 'preprocessing',
                     res = 'hi',
@@ -36,15 +39,48 @@ def main(subs, skips):
         # if subs were given but sub is not in subs, don't preprocess
         if bool(subs) and sub not in subs:
             continue
+
         # if sub in skips, don't preprocess
         if sub in skips:
             continue
 
-        # Get stft
-        (Zxxs, events) = compute_stft.main(fpath, sub, task, run)
+        # Don't run if file already exists
+        FIGS_ROOT = '../figs'
+        fig_fpath = FIGS_ROOT + '/subj-' + sub + '_' + 'task-pitch_' + 'run-' + run + '_stft' + '.png'
+        if os.path.isfile(fig_fpath) and sub not in subs:
+            print(f"Subject {sub} run {run} already decoded.")
+            continue
+        
+        # Load stft and events
+        #DERIV_ROOT = '../data/bids/derivatives'
+        #sink = DataSink(DERIV_ROOT, 'decoding')
+        #stft_fpath = sink.get_path(
+        #    subject = sub,
+        #    task = task,
+        #    run = run,
+        #    desc = 'stft',
+        #    suffix = 'power',
+        #    extension = 'npy',
+        #)
+        #print(f'Loading stft from {stft_fpath}')
+        #Zxxs = np.load(stft_fpath)
+        #print(type(Zxxs))
+        #print(np.shape(Zxxs))
+        #events_fpath = f'../data/bids/derivatives/preprocessing/sub-{sub}/sub-{sub}_run-{run}_events.npy'
+        #print(f'Loading stft from {events_fpath}')
+        #events = np.load(events_fpath)
+        #print(type(events))
+        #Zxxs = compute_stft.main(fpath, sub, task, run, stft_fpath)
+        #print(type(Zxxs))
+        #print(np.shape(Zxxs))
+        #print(type(events))
         
         # Decode
-        subprocess.check_call("sbatch ./decode_from_stft.py %s %s %s %s %s" % (sub, task, run, Zxxs, events), shell=True)
+        print('subprocess.check_call("sbatch ./decode_from_stft.py %s %s %s" % (sub, task, run), shell=True)')
+
+        #subprocess.check_call("sbatch ./decode_from_stft.py %s %s %s %s" % (sub, task, run, Zxxs), shell=True)
+
+        subprocess.check_call("sbatch ./decode_from_stft.py %s %s %s" % (sub, task, run), shell=True)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run decode_from_stft.py over given subjects')
