@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-#SBATCH --time=00:20:00 # only need 15 minutes for regular logreg? need like 4 hrs for logregcv
+#SBATCH --time=00:40:00 # only need 15 minutes for regular logreg? need like 4 hrs for logregcv, 30 min for logreg no crop
 #SBATCH --partition=broadwl
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --mem-per-cpu=32G
 #SBATCH --mail-type=all
 #SBATCH --mail-user=letitiayhho@uchicago.edu
-#SBATCH --output=logs/decoding_%j.log
+#SBATCH --output=logs/decode_from_wavelets_%j.log
 
 import gc
 import sys
@@ -31,7 +31,6 @@ def main(fpath, sub, task, run, scores_fpath):
     BIDS_ROOT = '../data/bids'
     FIGS_ROOT = '../figs'
     STIM_FREQS = np.array([50, 100, 150, 200, 250])
-    FS = 2000
 
     np.random.seed(0)
 
@@ -39,11 +38,11 @@ def main(fpath, sub, task, run, scores_fpath):
     print(fpath)
     epochs = mne.read_epochs(fpath)
     #epochs = epochs.crop(tmin = 0)
-    events = mne.read_events(fpath)
+    events = epochs.events
 
     # Compute power
     print("---------- Compute power ----------")
-    n_cycles = STIM_FREQS / 16 # different number of cycle per frequency
+    n_cycles = STIM_FREQS / 7 # different number of cycle per frequency
                                # higher constant, fewer windows, maybe?
     power = tfr_morlet(epochs,
                        freqs = STIM_FREQS,
@@ -116,7 +115,7 @@ def main(fpath, sub, task, run, scores_fpath):
     ax.set_title('Sensor space decoding')
 
     # Save plot
-    fig_fpath = FIGS_ROOT + '/subj-' + sub + '_' + 'task-pitch_' + 'run-' + run + 'log_reg_no_crop' + '.png'
+    fig_fpath = FIGS_ROOT + '/subj-' + sub + '_' + 'task-pitch_' + 'run-' + run + '_log_reg_no_crop' + '.png'
     print('Saving figure to: ' + fig_fpath)
     plt.savefig(fig_fpath)
 

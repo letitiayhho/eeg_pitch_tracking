@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+import os
 import argparse
 import subprocess
 from util.io.iter_BIDSPaths import *
 
 def main(subs, skips, method) -> None:
     BIDS_ROOT = '../data/bids'
+    DERIV_ROOT = '../data/bids/derivatives'
 
     layout = BIDSLayout(BIDS_ROOT, derivatives = True)
     fpaths = layout.get(scope = 'preprocessing',
@@ -15,14 +17,22 @@ def main(subs, skips, method) -> None:
                         return_type = 'filename')
 
     for (fpath, sub, task, run) in iter_BIDSPaths(fpaths):
-        # if subs were given but sub is not in subs, don't run
+        # skip if subs were given but sub is not in subs
         if bool(subs) and sub not in subs:
             continue
-        # if sub in skips, don't convert
+
+        # skip if sub in skips, don't convert
         if sub in skips:
             continue
-        print("subprocess.check_call(\"sbatch ./coherence.py %s %s %s %s %s\" % (fpath, sub, task, run, method), shell=True)")
-        subprocess.check_call("sbatch ./coherence.py %s %s %s %s %s" % (fpath, sub, task, run, method), shell=True)
+
+        # skip if coherence is already computed
+        save_fp = f"{DERIV_ROOT}/coherence/subj-{sub}_task-{task}_run-{run}_{method}-by-condition.pkl"
+        if os.path.isfile(save_fp) and sub not in subs:
+            print(f"Coherence already computed for {sub} run {run}.")
+            continue
+
+        print("subprocess.check_call(\"sbatch ./coherence.py %s %s %s %s %s %s\" % (fpath, sub, task, run, method, save_fp), shell=True)")
+        subprocess.check_call("sbatch ./coherence.py %s %s %s %s %s %s" % (fpath, sub, task, run, method, save_fp), shell=True)
         
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run coherence.py over given subjects')

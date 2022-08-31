@@ -39,7 +39,7 @@ def main(subs, skips) -> None:
             suffix = 'scores',
             extension = 'npy',
         )
-        if os.path.isfile(scores_fpath):
+        if os.path.isfile(scores_fpath) and sub not in subs:
             print(f"Subject {sub} run {run} is already preprocessed")
             continue
 
