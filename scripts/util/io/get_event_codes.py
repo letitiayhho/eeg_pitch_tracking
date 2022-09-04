@@ -16,7 +16,8 @@ import numpy as np
 
 def main(path):
     print(f"Reading {path}")
-    events = mne.read_events(path)[:,2]
+    epochs = mne.read_epochs(path)
+    events = epochs.events[:,2]
     mapping = {10001: 100, 10002: 150, 10003: 200, 10004: 250, 10005: 50}
     events = np.vectorize(mapping.get)(events)
 
