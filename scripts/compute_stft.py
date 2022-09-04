@@ -37,8 +37,8 @@ def main(fpath, sub, task, run, save_fpath):
         Zxxs[:, chan, :, :] = Zxx
 
     # Save powers and events
-#     print('Saving scores to: ' + save_fpath)
-#     np.save(save_fpath, Zxxs)
+    print('Saving scores to: ' + save_fpath)
+    np.save(save_fpath, Zxxs)
         
     return (Zxxs)
 
