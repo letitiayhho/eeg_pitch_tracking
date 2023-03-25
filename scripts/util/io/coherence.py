@@ -126,6 +126,19 @@ def get_coh(cond, epochs, indices, fmin, fmax, CONDS, FS, METHOD):
         n_jobs = 1)
     return(coh)
 
+def get_coh_epochs(cond, epochs, indices, fmin, fmax, CONDS, FS, METHOD):
+    print(f"METHOD: {METHOD}")
+    coh = spectral_connectivity_time(
+        epochs[cond],
+        method = 'coh', 
+        indices = indices,
+        sfreq = FS, 
+#         fmin = fmin, 
+#         fmax = fmax, 
+        faverage = True, 
+        n_jobs = 1)
+    return(coh)
+
 def clean_coh(coh, CONDS, N_CHANS):
     N_CONDS = len(CONDS)
     df = np.zeros((N_CHANS, N_CONDS))
