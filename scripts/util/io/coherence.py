@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mne_bids import BIDSPath, read_raw_bids
 from bids import BIDSLayout
-from mne_connectivity import seed_target_indices, spectral_connectivity_time, spectral_connectivity_epochs
+from mne_connectivity import seed_target_indices, spectral_connectivity_time # spectral_connectivity_epochs
 
 def get_stim_sub(SUB, RUN): # Use a different sub for generating stim channels if sub has bad Aux channel
     # Constants
@@ -59,6 +59,17 @@ def create_stim_epochs_array(raw_epochs, n_epochs, CONDS):
         stim_epochs_array[:, i , :] = cond_stim_epochs
     return(stim_epochs_array)
 
+def create_stim_array(raw_epochs, CONDS):
+    n_conds = len(CONDS)
+    n_samps = 3501
+    stim_epochs_array = np.empty((1, n_conds, n_samps))
+    for i in range(n_conds):
+        cond = CONDS[i]
+        stim = raw_epochs[cond].get_data(['stim'])
+        stim = stim.mean(0).flatten()
+        stim_epochs_array[0, i , :] = stim
+    return(stim_epochs_array)
+
 def plot_stim_chans(FIGS_ROOT, SUB, RUN, RAW_TMIN, RAW_TMAX, stim_epochs_array):
     n_samples = np.shape(stim_epochs_array)[2]
     t = np.linspace(RAW_TMIN, RAW_TMAX, n_samples, endpoint = False)
@@ -75,16 +86,9 @@ def plot_stim_chans(FIGS_ROOT, SUB, RUN, RAW_TMIN, RAW_TMAX, stim_epochs_array):
 
 def create_stim_epochs_object(stim_epochs_array, events, CONDS, FS, RAW_TMIN):
     info = mne.create_info(ch_names = CONDS,
-                           ch_types = ['stim'] * 5,
+                           ch_types = ['eeg'] * 5,
                            sfreq = FS)
 
-    # Manually add channel info to match original data to stop mne from shouting at us, very hacky
-    info['custom_ref_applied'] = True
-    info['description'] = 'Anonymized using a time shift to preserve age at acquisition'
-    info['experimenter'] = 'mne_anonymize'
-    info['highpass'] = 30.0
-    info['line_freq'] = 60.0
-    info['lowpass'] = 270.0
     event_id = {'100': 10001, '150': 10002, '200': 10003, '250': 10004, '50': 10005}
 
     # Manually add info that is passed in through mne.EpochsArray instead of in the info dict, also very hacky
@@ -98,6 +102,32 @@ def create_stim_epochs_object(stim_epochs_array, events, CONDS, FS, RAW_TMIN):
                                        event_id = event_id, 
                                        baseline = baseline)
     return(simulated_epochs)
+    
+# def create_stim_epochs_object(stim_epochs_array, events, CONDS, FS, RAW_TMIN):
+#     info = mne.create_info(ch_names = CONDS,
+#                            ch_types = ['stim'] * 5,
+#                            sfreq = FS)
+
+#     # Manually add channel info to match original data to stop mne from shouting at us, very hacky
+#     #info['custom_ref_applied'] = True
+#     info['description'] = 'Anonymized using a time shift to preserve age at acquisition'
+#     info['experimenter'] = 'mne_anonymize'
+#     info['highpass'] = 30.0
+#     info['line_freq'] = 60.0
+#     info['lowpass'] = 270.0
+#     event_id = {'100': 10001, '150': 10002, '200': 10003, '250': 10004, '50': 10005}
+
+#     # Manually add info that is passed in through mne.EpochsArray instead of in the info dict, also very hacky
+#     baseline = (-0.20000000298023224, 0.0)
+
+#     # Create Epochs object
+#     simulated_epochs = mne.EpochsArray(stim_epochs_array, 
+#                                        info, 
+#                                        events = events, 
+#                                        tmin = RAW_TMIN, 
+#                                        event_id = event_id, 
+#                                        baseline = baseline)
+#     return(simulated_epochs)
     
 def get_coh_indices(N_CHANS):
     # Set indices of channel pairs to compute coherence across
@@ -159,3 +189,12 @@ def create_coh_df(coh, cond, CONDS, N_CHANS, SUB):
     coh_df.insert(0, 'sub', np.array([SUB]*N_CHANS))
     return(coh_df)
 
+def extract_epoch_coherence(epoch, FREQ, f, Cxy):
+    epoch_cxy_dict = {'epoch': epoch}
+    for freq in FREQS:
+        lower_index = int(np.argwhere(f < freq)[-1])
+        upper_index = lower_index+1
+        cxy_freq = np.mean([Cxy[lower_index], Cxy[upper_index]])
+        epoch_cxy_dict[str(freq)] = cxy_freq
+    epoch_df = pd.DataFrame(epoch_cxy_dict, index=[0])
+    return epoch_df
