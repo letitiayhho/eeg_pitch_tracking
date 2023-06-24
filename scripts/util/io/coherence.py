@@ -189,12 +189,17 @@ def create_coh_df(coh, cond, CONDS, N_CHANS, SUB):
     coh_df.insert(0, 'sub', np.array([SUB]*N_CHANS))
     return(coh_df)
 
-def extract_epoch_coherence(epoch, FREQ, f, Cxy):
-    epoch_cxy_dict = {'epoch': epoch}
+def extract_coherence_for_condition_frequencies(FREQS, f, Cxy):
+    cxy_for_condition_frequencies = []
     for freq in FREQS:
         lower_index = int(np.argwhere(f < freq)[-1])
         upper_index = lower_index+1
         cxy_freq = np.mean([Cxy[lower_index], Cxy[upper_index]])
-        epoch_cxy_dict[str(freq)] = cxy_freq
-    epoch_df = pd.DataFrame(epoch_cxy_dict, index=[0])
-    return epoch_df
+        cxy_for_condition_frequencies.append(cxy_freq)
+    return cxy_for_condition_frequencies
+
+def extract_coherence_at_condition_frequencies(freq, f, Cxy):
+    lower_index = int(np.argwhere(f < freq)[-1])
+    upper_index = lower_index+1
+    cxy_freq = np.mean([Cxy[lower_index], Cxy[upper_index]])
+    return cxy_freq
