@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-#SBATCH --time=00:10:00
+#SBATCH --time=00:12:00
 #SBATCH --partition=broadwl
 #SBATCH --ntasks=1
 #SBATCH --mem-per-cpu=32G
 #SBATCH --mail-type=all
 #SBATCH --mail-user=letitiayhho@uchicago.edu
-#SBATCH --output=logs/preprocess_ffr_%j.log
+#SBATCH --output=logs/microstates_%j.log
 
 from matplotlib import pyplot as plt
 import seaborn as sns
@@ -40,6 +40,7 @@ def main(sub):
     '''
 
     # load epochs and concatenate across runs
+    print("----------- load epochs and concatenate across runs -----------")
     layout = BIDSLayout(BIDS_ROOT, derivatives = True)
     run = lambda f: int(re.findall('run-(\w+)_', f)[0])
     fs = layout.get(
@@ -52,6 +53,7 @@ def main(sub):
     epochs = epochs.pick('eeg')
 
     # cluster observed topographies to derive microstates
+    print("----------- cluster observed topographics to derive microstates -----------")
     peaks = extract_gfp_peaks(epochs) # topographies w/ highest signal-to-noise
     ModK = ModKMeans(n_clusters = N_MICROSTATES, random_state = 0)
     ModK.fit(peaks, n_jobs = -1)
@@ -62,6 +64,7 @@ def main(sub):
     segmentation = ModK.predict(epochs, reject_edges = False)
     parameters = segmentation.compute_parameters()
 
+    print("----------- Plot global explained variance (ratio) -----------")
     x = ModK.cluster_names
     y = [parameters[elt + "_gev"] for elt in x]
     fig_var, ax = plt.subplots()
@@ -69,12 +72,14 @@ def main(sub):
     ax.set_xlabel("Microstates")
     ax.set_ylabel("Global explained Variance (ratio)")
 
+    print("----------- Plot time coverage (ratio) -----------")
     y = [parameters[elt + "_timecov"] for elt in x]
     fig_cov, ax = plt.subplots()
     ax = sns.barplot(x = x, y = y, ax = ax)
     ax.set_xlabel("Microstates")
     ax.set_ylabel("Time Coverage (ratio)")
 
+    print("----------- Save microstates -----------")
     sink = DataSink(DERIV_ROOT, 'microstates')
     solution_fpath = sink.get_path(
         subject = sub,
@@ -85,6 +90,7 @@ def main(sub):
     )
     ModK.save(solution_fpath)
 
+    print("----------- Generate report figures -----------")
     report = mne.Report(verbose = True)
     report.add_figure(
         fig_topos,
@@ -101,7 +107,9 @@ def main(sub):
         title = 'Time coverage',
         section = 'Microstates (subject-level)'
     )
-    report.save(op.join(sink.deriv_root, 'sub-%s.html'%sub), overwrite = True)
+    
+    print("----------- Save report -----------")
+    report.save(op.join(sink.deriv_root, 'sub-%s_microstates.html'%sub), overwrite = True)
 
     return None
 

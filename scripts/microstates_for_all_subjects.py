@@ -38,9 +38,9 @@ def main(force, subs, skips) -> None:
             suffix = 'ModKMeans',
             extension = '.fif.gz'
         )
-        if os.path.isfile(solution_fpath) and sub not in subs and not force:
-           print(f"Subject {sub} run {run} is already preprocessed")
-           continue
+        if os.path.isfile(solution_fpath) and not force:
+            print(f"Subject {sub} run {run} is already preprocessed")
+            continue
 
         print("subprocess.check_call(\"sbatch ./microstates.py %s\" % (sub), shell=True)")
         subprocess.check_call("sbatch ./microstates.py %s" % (sub), shell=True)
