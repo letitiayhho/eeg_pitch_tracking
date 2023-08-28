@@ -26,6 +26,8 @@ DERIV_ROOT = op.join(BIDS_ROOT, 'derivatives')
 FFR_PASSBAND = (30., 300.)
 MICROSTATE_PASSBAND = (1., 30.)
 TASK = 'pitch'
+TMIN = -0.3
+TMAX = 0.3
 
 def main(sub, run):
     '''
@@ -95,17 +97,9 @@ def main(sub, run):
     print('Create info object for post-PREP data')
     new_ch_names = prep_eeg.info['ch_names'] + prep_non_eeg.info['ch_names']
     raw = raw.reorder_channels(new_ch_names) # modify the channel names on the original raw data
-    
-#     new_ch_types = ['eeg']*62 + ['eog']*2 + ['stim']
-#     mapping = {}
-#     for key in new_ch_names:
-#         for value in new_ch_types:
-#             mapping[key] = value
-#     raw = raw.set_channel_types(mapping) # modify the channel mappings on the original raw data
-#     raw.info['bads'] = [] # already interpolated by PREP
     raw_info = raw.info # use the modified info from the original raw data object
      
-    # Create new raw object
+    # Combine post-prep data and new info
     print('Create new raw object')
     raw = mne.io.RawArray(raw_data, raw_info) # replace original raw object
 
@@ -120,10 +114,10 @@ def main(sub, run):
     epochs = mne.Epochs(
         raw_for_ffr,
         events,
-        tmin = -.25,
-        tmax = .25,
+        tmin = TMIN,
+        tmax = TMAX,
         event_id = event_ids,
-        baseline = (-.25, 0.),
+        baseline = (TMIN, 0.),
         preload = True
     )
     # drop bad epochs
@@ -148,7 +142,7 @@ def main(sub, run):
     epochs_for_ica = mne.Epochs(
         raw_for_ica,
         epochs.events, # same events as FFR epochs
-        tmin = -.25,
+        tmin = TMIN,
         tmax = .0, # only prestim
         event_id = event_ids,
         baseline = None,
@@ -167,7 +161,7 @@ def main(sub, run):
     epochs_for_micro = mne.Epochs(
         raw,
         epochs.events, # same events as FFR epochs
-        tmin = -.25,
+        tmin = TMIN,
         tmax = .0, # only prestim
         event_id = event_ids,
         baseline = None,
