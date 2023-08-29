@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-#SBATCH --time=00:20:00
+#SBATCH --time=00:25:00 # 20 min enough for most
 #SBATCH --partition=bigmem2
 #SBATCH --ntasks=1
-#SBATCH --mem-per-cpu=96G
+#SBATCH --mem-per-cpu=120G # 96 enough for most
 #SBATCH --mail-type=all
 #SBATCH --mail-user=letitiayhho@uchicago.edu
 #SBATCH --output=logs/preprocess_ffr_%j.log
@@ -70,7 +70,7 @@ def main(sub, run):
 
     # run PREP pipeline (notch, exclude bad chans, and re-reference)
     print('----------------- run PREP pipeline ------------------')
-    raw, events = raw.resample(int(2*FFR_PASSBAND[1]), events = events)
+    raw, events = raw.resample(int(4*FFR_PASSBAND[1]), events = events) # resample to 1200 Hz
     np.random.seed(int(sub))
     lf = raw.info['line_freq']
     prep_params = {
