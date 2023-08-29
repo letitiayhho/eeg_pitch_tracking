@@ -14,7 +14,7 @@ def main(force, subs, skips) -> None:
     layout = BIDSLayout(BIDS_ROOT, derivatives = False)
     fpaths = layout.get(extension = 'eeg',
                         return_type = 'filename')
-    BADS = ['4']
+    BADS = ['3', '4', '9', '23', '29'] # skipped because low trial counts
 
     for (fpath, sub, task, run) in iter_BIDSPaths(fpaths):
 
