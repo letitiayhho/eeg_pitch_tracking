@@ -26,8 +26,8 @@ DERIV_ROOT = op.join(BIDS_ROOT, 'derivatives')
 FFR_PASSBAND = (30., 300.)
 MICROSTATE_PASSBAND = (1., 30.)
 TASK = 'pitch'
-TMIN = -0.3
-TMAX = 0.3
+TMIN = -0.25
+TMAX = 0.25
 
 def main(sub, run):
     '''
